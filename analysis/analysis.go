@@ -15,6 +15,14 @@ func Analyze(expr ast.Expr) Form {
 	return analyzer.output
 }
 
+func AnalyzeProgram(exprs []ast.Expr) []Form {
+	analyzed := []Form{}
+	for _, expr := range exprs {
+		analyzed = append(analyzed, Analyze(expr))
+	}
+	return analyzed
+}
+
 func (anal *Analyzer) VisitSymbol(symbol *ast.Symbol) {
 	anal.output = Symbol{Name: symbol.Name}
 }
@@ -47,6 +55,8 @@ func (anal *Analyzer) VisitList(list *ast.List) {
 			anal.output = doForm(rest)
 		case "def":
 			anal.output = defForm(rest)
+		case "defun":
+			anal.output = defunForm(rest)
 		case "fun":
 			anal.output = funForm(rest)
 		case "echo":
@@ -163,6 +173,43 @@ func defForm(rest []ast.Expr) Form {
 	return Def{
 		Name: name,
 		Body: analyzedBody,
+	}
+}
+
+func defunForm(rest []ast.Expr) Form {
+	restLen := len(rest)
+	if restLen != 3 {
+		return FormError{Message: "Expected to have 2 more expressions"}
+	}
+
+	sym := rest[0]
+
+	name, err := assertSymbol(sym)
+	if err != nil {
+		return FormError{Message: "Expected symbol name"}
+	}
+
+	list, err := assertList(rest[1])
+	if err != nil {
+		return FormError{Message: "Expected list"}
+	}
+
+	parametersList := []string{}
+	for _, expr := range list {
+		param, err := assertSymbol(expr)
+		if err != nil {
+			return FormError{Message: "Expected symbol"}
+		}
+		parametersList = append(parametersList, param)
+	}
+
+	body := rest[2]
+	analyzedBody := Analyze(body)
+
+	return Defun{
+		Name:       name,
+		Parameters: parametersList,
+		Body:       analyzedBody,
 	}
 }
 

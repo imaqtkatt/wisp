@@ -6,7 +6,9 @@ import (
 )
 
 var (
-	NIL = ValueNil{}
+	NIL   = ValueNil{}
+	TRUE  = ValueNumber{Number: 1}
+	FALSE = ValueNumber{Number: 0}
 )
 
 type Value interface {

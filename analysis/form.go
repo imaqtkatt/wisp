@@ -94,3 +94,13 @@ type Echo struct {
 func (echo Echo) String() string {
 	return fmt.Sprintf("Echo(%+v)", echo.Forms)
 }
+
+type Defun struct {
+	Name       string
+	Parameters []string
+	Body       Form
+}
+
+func (defun Defun) String() string {
+	return fmt.Sprintf("Defun(%+v, %+v, %+v)", defun.Name, defun.Parameters, defun.Body)
+}

@@ -14,12 +14,11 @@ import (
 
 func main() {
 	script := `
-(do
-  (def id (fun (x) x))
-  (id nil)
-  (let (x 1
-  		y (atoi "3"))
-	(echo "result is: " "<p>" (+ x y) "</p>")))
+(defun id (x) x)
+
+(let (x 1
+      y (atoi "3"))
+  (echo "result is: " "<p>" (id (+ x y)) "</p>"))
 `
 
 	handler, err := scriptHandler(script)
@@ -44,17 +43,17 @@ func main() {
 func scriptHandler(script string) (http.HandlerFunc, error) {
 	lexer := ast.NewLexer(script)
 	parser := ast.NewParser(&lexer)
-	expr, err := parser.Expr()
+	program, err := parser.Program()
 	if err != nil {
 		return nil, err
 	}
 
-	anal := analysis.Analyze(expr)
+	anal := analysis.AnalyzeProgram(program)
 
 	fun := func(w http.ResponseWriter, r *http.Request) {
 		buf := bufio.NewWriter(w)
 		ctx := evaluator.NewContextWithWriter(buf)
-		_, err = ctx.Eval(anal)
+		_, err = ctx.EvalProgram(anal)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return

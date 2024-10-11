@@ -43,6 +43,18 @@ func (ctx *EvaluatorContext) def(name string, value Value) {
 	ctx.variables[name] = value
 }
 
+func (ctx *EvaluatorContext) EvalProgram(anal []analysis.Form) (Value, error) {
+	var returnValue Value = NIL
+	for _, form := range anal {
+		if value, err := ctx.Eval(form); err != nil {
+			return nil, err
+		} else {
+			returnValue = value
+		}
+	}
+	return returnValue, nil
+}
+
 func (ctx *EvaluatorContext) Eval(anal analysis.Form) (Value, error) {
 	switch form := anal.(type) {
 	case analysis.FormError:
@@ -64,6 +76,15 @@ func (ctx *EvaluatorContext) Eval(anal analysis.Form) (Value, error) {
 		}
 		ctx.def(form.Name, body)
 		return NIL, nil
+
+	case analysis.Defun:
+		fun := ValueClosure{
+			ctx:        newEvaluatorContext(ctx),
+			parameters: form.Parameters,
+			body:       form.Body,
+		}
+		ctx.def(form.Name, fun)
+		return fun, nil
 
 	case analysis.Let:
 		letCtx := newEvaluatorContext(ctx)
@@ -149,9 +170,9 @@ func NewContextWithWriter(w io.Writer) *EvaluatorContext {
 		w:         w,
 	}
 
-	ctx.def("nil", ValueNil{})
-	ctx.def("true", ValueNumber{Number: 1})
-	ctx.def("false", ValueNumber{Number: 0})
+	ctx.def("nil", NIL)
+	ctx.def("true", TRUE)
+	ctx.def("false", FALSE)
 
 	ctx.defun("inc", inc)
 	ctx.defun("nil?", isNil)
