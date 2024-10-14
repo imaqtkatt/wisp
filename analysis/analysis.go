@@ -48,25 +48,26 @@ func (anal *Analyzer) VisitList(list *ast.List) {
 
 	switch hd := head.(type) {
 	case *ast.Symbol:
-		switch hd.Name {
-		case "let":
-			anal.output = letForm(rest)
-		case "do":
-			anal.output = doForm(rest)
-		case "def":
-			anal.output = defForm(rest)
-		case "defun":
-			anal.output = defunForm(rest)
-		case "fun":
-			anal.output = funForm(rest)
-		case "echo":
-			anal.output = echoForm(rest)
-		default:
+		if dispatch, found := formsTable[hd.Name]; found {
+			anal.output = dispatch(rest)
+		} else {
 			anal.output = callForm(head, rest)
 		}
 	default:
 		anal.output = callForm(head, rest)
 	}
+}
+
+type FuncAnalyzer func([]ast.Expr) Form
+
+var formsTable map[string]FuncAnalyzer = map[string]FuncAnalyzer{
+	"do":    doForm,
+	"def":   defForm,
+	"defun": defunForm,
+	"echo":  echoForm,
+	"fun":   funForm,
+	"if":    ifForm,
+	"let":   letForm,
 }
 
 func letForm(exprs []ast.Expr) Form {
@@ -252,4 +253,21 @@ func echoForm(exprs []ast.Expr) Form {
 	}
 
 	return Echo{Forms: forms}
+}
+
+func ifForm(exprs []ast.Expr) Form {
+	exprsLen := len(exprs)
+	if exprsLen != 3 {
+		return FormError{Message: "Expected three forms"}
+	}
+
+	condition := Analyze(exprs[0])
+	then := Analyze(exprs[1])
+	else_ := Analyze(exprs[2])
+
+	return If{
+		Condition: condition,
+		Then:      then,
+		Else:      else_,
+	}
 }

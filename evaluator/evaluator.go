@@ -149,6 +149,17 @@ func (ctx *EvaluatorContext) Eval(anal analysis.Form) (Value, error) {
 			}
 		}
 		return NIL, nil
+
+	case analysis.If:
+		condition, err := ctx.Eval(form.Condition)
+		if err != nil {
+			return nil, err
+		}
+		if condition.IsTruthy() {
+			return ctx.Eval(form.Then)
+		} else {
+			return ctx.Eval(form.Else)
+		}
 	}
 	panic("unreachable")
 }

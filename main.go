@@ -19,6 +19,10 @@ func main() {
 (let (x 1
       y (atoi "3"))
   (echo "result is: " "<p>" (id (+ x y)) "</p>"))
+
+(if nil
+  (echo "hmmm")
+  (echo "nil"))
 `
 
 	handler, err := scriptHandler(script)

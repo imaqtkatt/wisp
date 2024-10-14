@@ -15,6 +15,8 @@ type Value interface {
 	IsCallable() bool
 	Call(arguments []Value) (Value, error)
 
+	IsTruthy() bool
+
 	String() string
 }
 
@@ -30,6 +32,10 @@ func (ValueNil) IsCallable() bool {
 
 func (ValueNil) Call(arguments []Value) (Value, error) {
 	panic("Nil is not a callable value")
+}
+
+func (ValueNil) IsTruthy() bool {
+	return false
 }
 
 type ValueNumber struct {
@@ -48,6 +54,10 @@ func (ValueNumber) Call(arguments []Value) (Value, error) {
 	panic("Number is not a callable value")
 }
 
+func (n ValueNumber) IsTruthy() bool {
+	return n.Number != 0
+}
+
 type ValueString struct {
 	Contents string
 }
@@ -64,6 +74,11 @@ func (ValueString) Call(arguments []Value) (Value, error) {
 	panic("String is not a callable value")
 }
 
+func (ValueString) IsTruthy() bool {
+	// consider empty strings as false?
+	return true
+}
+
 type ValueFun struct {
 	Fun func([]Value) (Value, error)
 }
@@ -78,6 +93,10 @@ func (ValueFun) IsCallable() bool {
 
 func (fun ValueFun) Call(arguments []Value) (Value, error) {
 	return fun.Fun(arguments)
+}
+
+func (ValueFun) IsTruthy() bool {
+	return true
 }
 
 type ValueClosure struct {
@@ -110,4 +129,8 @@ func (closure ValueClosure) Call(arguments []Value) (Value, error) {
 	}
 
 	return body, nil
+}
+
+func (ValueClosure) IsTruthy() bool {
+	return true
 }

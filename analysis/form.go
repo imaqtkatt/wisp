@@ -104,3 +104,13 @@ type Defun struct {
 func (defun Defun) String() string {
 	return fmt.Sprintf("Defun(%+v, %+v, %+v)", defun.Name, defun.Parameters, defun.Body)
 }
+
+type If struct {
+	Condition Form
+	Then      Form
+	Else      Form
+}
+
+func (if_ If) String() string {
+	return fmt.Sprintf("If(%+v, %+v, %+v)", if_.Condition, if_.Then, if_.Else)
+}
