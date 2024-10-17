@@ -160,6 +160,23 @@ func (ctx *EvaluatorContext) Eval(anal analysis.Form) (Value, error) {
 		} else {
 			return ctx.Eval(form.Else)
 		}
+
+	case analysis.Object:
+		entries := map[Value]Value{}
+
+		for key, val := range form.Entries {
+			evalKey, err := ctx.Eval(key)
+			if err != nil {
+				return nil, err
+			}
+			evalVal, err := ctx.Eval(val)
+			if err != nil {
+				return nil, err
+			}
+			entries[evalKey] = evalVal
+		}
+
+		return ValueObject{Entries: entries}, nil
 	}
 	panic("unreachable")
 }
@@ -184,11 +201,13 @@ func NewContextWithWriter(w io.Writer) *EvaluatorContext {
 	ctx.def("nil", NIL)
 	ctx.def("true", TRUE)
 	ctx.def("false", FALSE)
+	ctx.def("*newline*", ValueString{Contents: "\n"})
 
 	ctx.defun("inc", inc)
 	ctx.defun("nil?", isNil)
 	ctx.defun("atoi", atoi)
 	ctx.defun("+", add)
+	ctx.defun("=", compare)
 
 	return ctx
 }
@@ -268,4 +287,20 @@ func add(arguments []Value) (Value, error) {
 	}
 
 	return ValueNumber{Number: acc}, nil
+}
+
+func compare(arguments []Value) (Value, error) {
+	if len(arguments) != 2 {
+		return nil, &ArityError{Arity: 2}
+	}
+
+	fst := arguments[0]
+	snd := arguments[0]
+
+	isEq := fst.Compare(snd)
+	if isEq {
+		return TRUE, nil
+	} else {
+		return FALSE, nil
+	}
 }

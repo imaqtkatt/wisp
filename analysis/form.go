@@ -114,3 +114,11 @@ type If struct {
 func (if_ If) String() string {
 	return fmt.Sprintf("If(%+v, %+v, %+v)", if_.Condition, if_.Then, if_.Else)
 }
+
+type Object struct {
+	Entries map[Form]Form
+}
+
+func (obj Object) String() string {
+	return fmt.Sprintf("Object(%+v)", obj.Entries)
+}

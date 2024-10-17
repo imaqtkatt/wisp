@@ -37,6 +37,8 @@ const (
 	TokenString
 	TokenLParens
 	TokenRParens
+	TokenLBrace
+	TokenRBrace
 	TokenError
 	TokenEOF
 )
@@ -172,6 +174,10 @@ func (lexer *Lexer) NextToken() Token {
 			tokenType = TokenLParens
 		case r == ')':
 			tokenType = TokenRParens
+		case r == '{':
+			tokenType = TokenLBrace
+		case r == '}':
+			tokenType = TokenRBrace
 		case r == '"':
 			return lexer.stringToken()
 		case r == '-':
@@ -215,6 +221,7 @@ var restricted = map[rune]bool{
 	'{':  true,
 	'}':  true,
 	'`':  true,
+	',':  true,
 	'\'': true,
 }
 

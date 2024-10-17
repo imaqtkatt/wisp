@@ -58,6 +58,16 @@ func (anal *Analyzer) VisitList(list *ast.List) {
 	}
 }
 
+func (anal *Analyzer) VisitObject(object *ast.Object) {
+	entries := map[Form]Form{}
+
+	for key, value := range object.Entries {
+		entries[Analyze(key)] = Analyze(value)
+	}
+
+	anal.output = Object{Entries: entries}
+}
+
 type FuncAnalyzer func([]ast.Expr) Form
 
 var formsTable map[string]FuncAnalyzer = map[string]FuncAnalyzer{

@@ -71,9 +71,22 @@ func (e List) String() string {
 	return fmt.Sprintf("List(%v)", e.Elements)
 }
 
+type Object struct {
+	Entries map[Expr]Expr
+}
+
+func (o *Object) Accept(visitor ExprVisitor) {
+	visitor.VisitObject(o)
+}
+
+func (o Object) String() string {
+	return fmt.Sprintf("Obj(%v)", o.Entries)
+}
+
 type ExprVisitor interface {
 	VisitSymbol(symbol *Symbol)
 	VisitNumber(number *Number)
 	VisitString(string *String)
 	VisitList(list *List)
+	VisitObject(object *Object)
 }

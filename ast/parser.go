@@ -41,11 +41,15 @@ func (parser *Parser) expect(expected TokenType) (Token, error) {
 func (parser *Parser) Expr() (Expr, error) {
 	switch parser.peek() {
 	case TokenEOF:
-		return NewExprError("Reached EOF"), fmt.Errorf("reached EOF")
+		return nil, fmt.Errorf("reached EOF")
 	case TokenError:
 		return NewExprError(parser.curr.Lexeme), fmt.Errorf("error")
 	case TokenRParens:
-		return NewExprError("Unexpected ')'"), fmt.Errorf("unexpected")
+		return nil, fmt.Errorf("unexpected ')'")
+	case TokenRBrace:
+		return nil, fmt.Errorf("unexpected '}'")
+	case TokenLBrace:
+		return parser.obj()
 	case TokenNumber:
 		return parser.number()
 	case TokenIdentifier:
@@ -59,15 +63,43 @@ func (parser *Parser) Expr() (Expr, error) {
 	}
 }
 
+func (parser *Parser) obj() (Expr, error) {
+	_, err := parser.expect(TokenLBrace)
+	if err != nil {
+		return nil, err
+	}
+
+	entries := map[Expr]Expr{}
+	for parser.curr.Type != TokenRBrace {
+		key, err := parser.Expr()
+		if err != nil {
+			return nil, err
+		}
+		val, err := parser.Expr()
+		if err != nil {
+			return nil, err
+		}
+		entries[key] = val
+	}
+
+	_, err = parser.expect(TokenRBrace)
+	if err != nil {
+		return nil, err
+	}
+
+	expr := &Object{Entries: entries}
+	return expr, nil
+}
+
 func (parser *Parser) number() (Expr, error) {
 	token, err := parser.expect(TokenNumber)
 	if err != nil {
-		return NewExprError("Error"), err
+		return nil, err
 	}
 
 	number, err := strconv.Atoi(token.Lexeme)
 	if err != nil {
-		return NewExprError("Error"), err
+		return nil, err
 	}
 
 	expr := &Number{Number: number}
@@ -77,7 +109,7 @@ func (parser *Parser) number() (Expr, error) {
 func (parser *Parser) symbol() (Expr, error) {
 	token, err := parser.expect(TokenIdentifier)
 	if err != nil {
-		return NewExprError("Error"), err
+		return nil, err
 	}
 
 	expr := &Symbol{Name: token.Lexeme}
@@ -87,7 +119,7 @@ func (parser *Parser) symbol() (Expr, error) {
 func (parser *Parser) string() (Expr, error) {
 	token, err := parser.expect(TokenString)
 	if err != nil {
-		return NewExprError("Error"), err
+		return nil, err
 	}
 
 	expr := &String{Contents: token.Lexeme}
@@ -97,7 +129,7 @@ func (parser *Parser) string() (Expr, error) {
 func (parser *Parser) list() (Expr, error) {
 	_, err := parser.expect(TokenLParens)
 	if err != nil {
-		return NewExprError("Error"), err
+		return nil, err
 	}
 
 	elements := make([]Expr, 0)
@@ -111,7 +143,7 @@ func (parser *Parser) list() (Expr, error) {
 
 	_, err = parser.expect(TokenRParens)
 	if err != nil {
-		return NewExprError("Error"), err
+		return nil, err
 	}
 
 	return &List{Elements: elements}, nil

@@ -23,6 +23,17 @@ func main() {
 (if nil
   (echo "hmmm")
   (echo "nil"))
+
+(echo *newline*)
+
+(def h1 {"type" "h1"})
+
+(defun h1? (el)
+  (= (el "type") "h1"))
+
+(echo (h1? h1))
+
+(echo h1)
 `
 
 	handler, err := scriptHandler(script)
